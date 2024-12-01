@@ -25,16 +25,14 @@
 
 #include "types.h"
 
-typedef struct _csm_linked_list_node_t
-{
+typedef struct _csm_linked_list_node_t {
   void *data;
   struct _csm_linked_list_node_t *next;
 } csm_linked_list_node_t;
 
 typedef csm_bool (*csm_comparator)(void *data);
 
-typedef struct
-{
+typedef struct {
   csm_linked_list_node_t *head;
 } csm_linked_list_t;
 

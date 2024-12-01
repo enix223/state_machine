@@ -23,17 +23,15 @@
 #ifndef STATE_MACHINE_H_
 #define STATE_MACHINE_H_
 
-#include "error.h"
+#include "types.h"
 
-typedef enum
-{
+typedef enum {
   NEW,
   STARTED,
   STOPPED,
 } csm_machine_status;
 
-typedef struct
-{
+typedef struct {
   // current state
   int state;
 
@@ -45,7 +43,7 @@ typedef int csm_transition_t;
 
 typedef int csm_state_t;
 
-csm_err_t csm_initialize_machine(csm_state_machine_t *machine, int state_size, int transition_size);
+csm_err_t csm_initialize_machine(csm_state_machine_t *machine);
 
 csm_err_t csm_define_state_transition(csm_state_machine_t *machine, csm_state_t state, csm_transition_t transition);
 

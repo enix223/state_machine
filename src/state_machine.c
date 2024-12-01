@@ -1,3 +1,4 @@
+#include "state_machine.h"
 /*
  *  The MIT License (MIT)
  * Copyright (c) 2024 Enix Yu
@@ -20,3 +21,21 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
  */
+
+csm_err_t csm_initialize_machine(csm_state_machine_t *machine) {
+  return CSM_ERR_OK;
+}
+
+csm_err_t csm_define_state_transition(csm_state_machine_t *machine, csm_state_t state, csm_transition_t transition) {
+  return CSM_ERR_OK;
+}
+
+csm_err_t csm_dealloc_machine(csm_state_machine_t *machine) { return CSM_ERR_OK; }
+
+csm_err_t csm_start(csm_state_machine_t *machine) { return CSM_ERR_OK; }
+
+csm_err_t csm_transit(csm_state_machine_t *machine, csm_transition_t transition) { return CSM_ERR_OK; }
+
+csm_err_t csm_stop(csm_state_machine_t *machine) { return CSM_ERR_OK; }
+
+csm_err_t csm_reset(csm_state_machine_t *machine) { return CSM_ERR_OK; }

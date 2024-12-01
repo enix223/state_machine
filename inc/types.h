@@ -24,14 +24,12 @@
 #ifndef CSM_ERROR_H_
 #define CSM_ERROR_H_
 
-typedef enum 
-{
+typedef enum {
   CSM_ERR_OK,
   CSM_ERR_FAILED,
 } csm_err_t;
 
-typedef enum
-{
+typedef enum {
   CSM_FALSE,
   CSM_TRUE,
 } csm_bool;
