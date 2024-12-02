@@ -25,14 +25,6 @@
 
 #include "linked_list.h"
 
-typedef struct {
-  // transition
-  csm_transition_t transition;
-
-  // transit to which state
-  csm_state_t to_state;
-} csm_state_transition_node_t;
-
 static inline csm_bool find_transition(void *current_data, void *data_to_find);
 
 csm_machine_err_t csm_machine_initialize(csm_state_machine_t *machine, csm_state_t init_state) {
@@ -42,20 +34,31 @@ csm_machine_err_t csm_machine_initialize(csm_state_machine_t *machine, csm_state
   for (int i = 0; i < CSM_STATE_COUNT; i++) {
     machine->state_transition_linked_list[i].head = CSM_NULL;
   }
+  machine->on_machine_status_changed = CSM_NULL;
+  machine->on_state_changed = CSM_NULL;
   return CSM_MACHINE_ERR_OK;
 }
 
-csm_machine_err_t csm_machine_define_state_transition(csm_state_machine_t *machine, csm_state_t state,
-                                                      csm_transition_t transition) {
-  if (machine->internal_machine_status != CSM_MACHINE_STATUS_STARTED) {
+csm_machine_err_t csm_machine_register_on_state_changed(csm_state_machine_t *machine,
+                                                        csm_machine_on_state_changed on_state_changed) {
+  machine->on_state_changed = on_state_changed;
+  return CSM_MACHINE_ERR_OK;
+}
+
+csm_machine_err_t csm_machine_register_on_machine_status_changed(
+    csm_state_machine_t *machine, csm_machine_on_machine_status_changed on_machine_status_changed) {
+  machine->on_machine_status_changed = on_machine_status_changed;
+  return CSM_MACHINE_ERR_OK;
+}
+
+csm_machine_err_t csm_machine_define_state_transition(csm_state_machine_t *machine, csm_state_t from_state,
+                                                      csm_state_transition_node_t *trans_node) {
+  if (machine->internal_machine_status != CSM_MACHINE_STATUS_NEW) {
+    // can only define transition when machine in new status
     return CSM_MACHINE_ERR_ILLEGAL_STATUS;
   }
-  csm_linked_list_t linked_list = machine->state_transition_linked_list[state];
-  csm_state_transition_node_t trans_node = {
-      .to_state = state,
-      .transition = transition,
-  };
-  csm_linked_list_append_node(&linked_list, &trans_node);
+  csm_linked_list_t *linked_list = &machine->state_transition_linked_list[from_state];
+  csm_linked_list_append_node(linked_list, trans_node);
   return CSM_MACHINE_ERR_OK;
 }
 
@@ -72,6 +75,9 @@ csm_machine_err_t csm_machine_start(csm_state_machine_t *machine) {
     return CSM_MACHINE_ERR_ILLEGAL_STATUS;
   }
   machine->internal_machine_status = CSM_MACHINE_STATUS_STARTED;
+  if (machine->on_machine_status_changed != CSM_NULL) {
+    machine->on_machine_status_changed(CSM_MACHINE_STATUS_NEW, CSM_MACHINE_STATUS_STARTED);
+  }
   return CSM_MACHINE_ERR_OK;
 }
 
@@ -79,21 +85,21 @@ csm_machine_err_t csm_machine_transit(csm_state_machine_t *machine, csm_transiti
   if (machine->internal_machine_status != CSM_MACHINE_STATUS_STARTED) {
     return CSM_MACHINE_ERR_ILLEGAL_STATUS;
   }
-  csm_linked_list_t linked_list = machine->state_transition_linked_list[machine->current_state];
+  csm_linked_list_t *linked_list = &machine->state_transition_linked_list[machine->current_state];
 
   csm_state_transition_node_t find_criteria = {
       .transition = transition,
   };
   csm_state_transition_node_t *found_node;
   csm_linked_list_err_t ret =
-      csm_linked_list_find_node(&linked_list, (void **)&found_node, find_transition, &find_criteria);
+      csm_linked_list_find_node(linked_list, (void **)&found_node, find_transition, &find_criteria);
   if (ret != CSM_ERR_LINKED_LIST_OK) {
     return CSM_MACHINE_ERR_ILLEGAL_TRANSITION;
   }
 
   if (machine->on_state_changed != CSM_NULL) {
     // trigger state change callback
-    machine->on_state_changed(machine->current_state, found_node->to_state, transition);
+    machine->on_state_changed(machine->current_state, found_node->to_state);
   }
 
   machine->current_state = found_node->to_state;
@@ -104,6 +110,9 @@ csm_machine_err_t csm_machine_stop(csm_state_machine_t *machine) {
   if (machine->internal_machine_status != CSM_MACHINE_STATUS_STARTED) {
     return CSM_MACHINE_ERR_ILLEGAL_STATUS;
   }
+  if (machine->on_machine_status_changed != CSM_NULL) {
+    machine->on_machine_status_changed(CSM_MACHINE_STATUS_STARTED, CSM_MACHINE_STATUS_STOPPED);
+  }
   machine->internal_machine_status = CSM_MACHINE_STATUS_STOPPED;
   return CSM_MACHINE_ERR_OK;
 }
@@ -112,6 +121,12 @@ csm_machine_err_t csm_machine_reset(csm_state_machine_t *machine) {
   if (machine->internal_machine_status != CSM_MACHINE_STATUS_STARTED &&
       machine->internal_machine_status != CSM_MACHINE_STATUS_STOPPED) {
     return CSM_MACHINE_ERR_ILLEGAL_STATUS;
+  }
+  if (machine->on_machine_status_changed != CSM_NULL) {
+    machine->on_machine_status_changed(machine->internal_machine_status, CSM_MACHINE_STATUS_STARTED);
+  }
+  if (machine->on_state_changed != CSM_NULL) {
+    machine->on_state_changed(machine->current_state, machine->init_state);
   }
   machine->current_state = machine->init_state;
   machine->internal_machine_status = CSM_MACHINE_STATUS_STARTED;

@@ -29,4 +29,9 @@
 #define CONFIG_NODE_POOL_SIZE (128)
 #endif
 
+// The total state count
+#ifndef CONFIG_STATE_COUNT
+#define CONFIG_STATE_COUNT (20)
+#endif
+
 #endif /* CSM_CONF_H_ */

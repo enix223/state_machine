@@ -32,18 +32,103 @@ typedef enum {
   TEST_STATE_3,
 } test_state;
 
+typedef enum {
+  TEST_TRANSITION_A,
+  TEST_TRANSITION_B,
+  TEST_TRANSITION_C,
+} test_transition;
+
 int test_state_machine_init_ok() {
   csm_state_machine_t machine;
   csm_machine_err_t ret = csm_machine_initialize(&machine, TEST_STATE_0);
   ASSERT_EQ(machine.current_state, TEST_STATE_0);
   ASSERT_EQ(machine.init_state, TEST_STATE_0);
-  ASSERT_EQ(machine.internal_machine_status, TEST_STATE_0);
+  ASSERT_EQ(machine.internal_machine_status, CSM_MACHINE_STATUS_NEW);
   ASSERT_EQ(ret, CSM_ERR_LINKED_LIST_OK);
+  return 0;
+}
+
+int test_state_machine_start_ok() {
+  csm_state_machine_t machine;
+  csm_machine_err_t ret = csm_machine_initialize(&machine, TEST_STATE_0);
+  ret = csm_machine_start(&machine);
+  ASSERT_EQ(machine.internal_machine_status, CSM_MACHINE_STATUS_STARTED);
+  ASSERT_EQ(ret, CSM_MACHINE_ERR_OK);
+  return 0;
+}
+
+int test_state_machine_stop_should_failed_if_machine_not_started() {
+  csm_state_machine_t machine;
+  csm_machine_err_t ret = csm_machine_initialize(&machine, TEST_STATE_0);
+  ret = csm_machine_stop(&machine);
+  ASSERT_EQ(ret, CSM_MACHINE_ERR_ILLEGAL_STATUS);
+  ASSERT_EQ(machine.internal_machine_status, CSM_MACHINE_STATUS_NEW);
+  return 0;
+}
+
+int test_state_machine_transit_should_failed_if_machine_not_started() {
+  csm_state_machine_t machine;
+  csm_machine_err_t ret = csm_machine_initialize(&machine, TEST_STATE_0);
+  ret = csm_machine_transit(&machine, TEST_TRANSITION_A);
+  ASSERT_EQ(ret, CSM_MACHINE_ERR_ILLEGAL_STATUS);
+  ASSERT_EQ(machine.internal_machine_status, CSM_MACHINE_STATUS_NEW);
+  ASSERT_EQ(machine.current_state, TEST_STATE_0);
+  return 0;
+}
+
+int test_state_machine_should_transit_ok() {
+  csm_state_machine_t machine;
+  csm_machine_err_t ret = csm_machine_initialize(&machine, TEST_STATE_0);
+  ASSERT_EQ(ret, CSM_MACHINE_ERR_OK);
+
+  csm_state_transition_node_t trans_node1 = {
+      .transition = TEST_TRANSITION_A,
+      .to_state = TEST_STATE_1,
+  };
+  ret = csm_machine_define_state_transition(&machine, TEST_STATE_0, &trans_node1);
+  ASSERT_EQ(ret, CSM_MACHINE_ERR_OK);
+
+  csm_state_transition_node_t trans_node2 = {
+      .transition = TEST_TRANSITION_B,
+      .to_state = TEST_STATE_2,
+  };
+  ret = csm_machine_define_state_transition(&machine, TEST_STATE_1, &trans_node2);
+  ASSERT_EQ(ret, CSM_MACHINE_ERR_OK);
+
+  csm_state_transition_node_t trans_node3 = {
+      .transition = TEST_TRANSITION_C,
+      .to_state = TEST_STATE_3,
+  };
+  ret = csm_machine_define_state_transition(&machine, TEST_STATE_2, &trans_node3);
+  ASSERT_EQ(ret, CSM_MACHINE_ERR_OK);
+
+  csm_state_transition_node_t trans_node4 = {
+      .transition = TEST_TRANSITION_A,
+      .to_state = TEST_STATE_0,
+  };
+  ret = csm_machine_define_state_transition(&machine, TEST_STATE_2, &trans_node4);
+  ASSERT_EQ(ret, CSM_MACHINE_ERR_OK);
+
+  ret = csm_machine_start(&machine);
+  ASSERT_EQ(ret, CSM_MACHINE_ERR_OK);
+
+  ret = csm_machine_transit(&machine, TEST_TRANSITION_A);
+  ASSERT_EQ(ret, CSM_MACHINE_ERR_OK);
+  ASSERT_EQ(machine.current_state, TEST_STATE_1);
+  ret = csm_machine_transit(&machine, TEST_TRANSITION_B);
+  ASSERT_EQ(ret, CSM_MACHINE_ERR_OK);
+  ASSERT_EQ(machine.current_state, TEST_STATE_2);
+  ret = csm_machine_transit(&machine, TEST_TRANSITION_C);
+  ASSERT_EQ(ret, CSM_MACHINE_ERR_OK);
+  ASSERT_EQ(machine.current_state, TEST_STATE_3);
   return 0;
 }
 
 int main() {
   int ret = 0;
   ret |= test_state_machine_init_ok();
+  ret |= test_state_machine_start_ok();
+  ret |= test_state_machine_should_transit_ok();
+  ret |= test_state_machine_stop_should_failed_if_machine_not_started();
   return ret;
 }

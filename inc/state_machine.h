@@ -27,8 +27,11 @@
 extern "C" {
 #endif
 
+#include "conf.h"
 #include "linked_list.h"
 #include "types.h"
+
+#define CSM_STATE_COUNT CONFIG_STATE_COUNT
 
 typedef enum {
   CSM_MACHINE_STATUS_NEW,
@@ -36,10 +39,6 @@ typedef enum {
   CSM_MACHINE_STATUS_STOPPED,
   CSM_MACHINE_STATUS_DESTROYED,
 } csm_machine_status;
-
-#ifndef CSM_STATE_COUNT
-#define CSM_STATE_COUNT (20)
-#endif
 
 typedef int csm_transition_t;
 
@@ -52,8 +51,15 @@ typedef enum {
   CSM_MACHINE_ERR_FAILED,
 } csm_machine_err_t;
 
-typedef void (*csm_machine_on_state_changed)(csm_state_t prev_state, csm_state_t new_state,
-                                             csm_transition_t transition);
+typedef struct {
+  // transition
+  csm_transition_t transition;
+
+  // transit to which state
+  csm_state_t to_state;
+} csm_state_transition_node_t;
+
+typedef void (*csm_machine_on_state_changed)(csm_state_t prev_state, csm_state_t new_state);
 
 typedef void (*csm_machine_on_machine_status_changed)(csm_machine_status prev_status, csm_machine_status new_status);
 
@@ -79,8 +85,14 @@ typedef struct {
 
 csm_machine_err_t csm_machine_initialize(csm_state_machine_t *machine, csm_state_t init_state);
 
-csm_machine_err_t csm_machine_define_state_transition(csm_state_machine_t *machine, csm_state_t state,
-                                                      csm_transition_t transition);
+csm_machine_err_t csm_machine_register_on_state_changed(csm_state_machine_t *machine,
+                                                        csm_machine_on_state_changed on_state_changed);
+
+csm_machine_err_t csm_machine_register_on_machine_status_changed(
+    csm_state_machine_t *machine, csm_machine_on_machine_status_changed on_machine_status_changed);
+
+csm_machine_err_t csm_machine_define_state_transition(csm_state_machine_t *machine, csm_state_t from_state,
+                                                      csm_state_transition_node_t *transition_node);
 
 csm_machine_err_t csm_machine_dealloc(csm_state_machine_t *machine);
 
