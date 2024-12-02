@@ -21,14 +21,12 @@
  * IN THE SOFTWARE.
  */
 
-#ifndef CSM_ERROR_H_
-#define CSM_ERROR_H_
+#ifndef CSM_CONF_H_
+#define CSM_CONF_H_
 
-typedef enum {
-  CSM_FALSE,
-  CSM_TRUE,
-} csm_bool;
-
-#define CSM_NULL ((void*)0)
-
+// The size of the pool to allocate linked list node
+#ifndef CONFIG_NODE_POOL_SIZE
+#define CONFIG_NODE_POOL_SIZE (128)
 #endif
+
+#endif /* CSM_CONF_H_ */

@@ -84,18 +84,19 @@ csm_machine_err_t csm_machine_transit(csm_state_machine_t *machine, csm_transiti
   csm_state_transition_node_t find_criteria = {
       .transition = transition,
   };
-  csm_state_transition_node_t found_node;
-  csm_linked_list_err_t ret = csm_linked_list_find_node(&linked_list, &found_node, find_transition, &find_criteria);
+  csm_state_transition_node_t *found_node;
+  csm_linked_list_err_t ret =
+      csm_linked_list_find_node(&linked_list, (void **)&found_node, find_transition, &find_criteria);
   if (ret != CSM_ERR_LINKED_LIST_OK) {
     return CSM_MACHINE_ERR_ILLEGAL_TRANSITION;
   }
 
   if (machine->on_state_changed != CSM_NULL) {
     // trigger state change callback
-    machine->on_state_changed(machine->current_state, found_node.to_state, transition);
+    machine->on_state_changed(machine->current_state, found_node->to_state, transition);
   }
 
-  machine->current_state = found_node.to_state;
+  machine->current_state = found_node->to_state;
   return CSM_MACHINE_ERR_OK;
 }
 

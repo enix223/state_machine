@@ -23,6 +23,10 @@
 #ifndef STATE_MACHINE_H_
 #define STATE_MACHINE_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "linked_list.h"
 #include "types.h"
 
@@ -87,5 +91,9 @@ csm_machine_err_t csm_machine_transit(csm_state_machine_t *machine, csm_transiti
 csm_machine_err_t csm_machine_stop(csm_state_machine_t *machine);
 
 csm_machine_err_t csm_machine_reset(csm_state_machine_t *machine);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* STATE_MACHINE_H_ */

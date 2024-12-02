@@ -23,6 +23,10 @@
 #ifndef LINKED_LIST_H_
 #define LINKED_LIST_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "types.h"
 
 typedef enum {
@@ -54,7 +58,7 @@ typedef struct {
  * @param data Pointer to receive the data
  * @return CSM_ERR_OK if found, otherwise CSM_ERR_FAILED is returned
  */
-csm_linked_list_err_t csm_linked_list_find_node(csm_linked_list_t *list, void *data, csm_comparator predicate,
+csm_linked_list_err_t csm_linked_list_find_node(csm_linked_list_t *list, void **data, csm_comparator predicate,
                                                 void *predicate_data);
 
 /**
@@ -71,6 +75,11 @@ csm_linked_list_err_t csm_linked_list_append_node(csm_linked_list_t *list, void 
  * @param predicate predicate to find the node to delete
  * @return CSM_ERR_OK if found, otherwise CSM_ERR_FAILED is returned
  */
-csm_linked_list_err_t csm_linked_list_remove_node(csm_linked_list_t *list, csm_comparator predicate, void *data);
+csm_linked_list_err_t csm_linked_list_remove_node(csm_linked_list_t *list, csm_comparator predicate,
+                                                  void *predicate_data);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* LINKED_LIST_H_ */
