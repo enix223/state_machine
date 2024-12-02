@@ -23,38 +23,69 @@
 #ifndef STATE_MACHINE_H_
 #define STATE_MACHINE_H_
 
+#include "linked_list.h"
 #include "types.h"
 
 typedef enum {
-  NEW,
-  STARTED,
-  STOPPED,
+  CSM_MACHINE_STATUS_NEW,
+  CSM_MACHINE_STATUS_STARTED,
+  CSM_MACHINE_STATUS_STOPPED,
+  CSM_MACHINE_STATUS_DESTROYED,
 } csm_machine_status;
 
-typedef struct {
-  // current state
-  int state;
-
-  // machine status
-  csm_machine_status status;
-} csm_state_machine_t;
+#ifndef CSM_STATE_COUNT
+#define CSM_STATE_COUNT (20)
+#endif
 
 typedef int csm_transition_t;
 
 typedef int csm_state_t;
 
-csm_err_t csm_initialize_machine(csm_state_machine_t *machine);
+typedef enum {
+  CSM_MACHINE_ERR_OK,
+  CSM_MACHINE_ERR_ILLEGAL_STATUS,
+  CSM_MACHINE_ERR_ILLEGAL_TRANSITION,
+  CSM_MACHINE_ERR_FAILED,
+} csm_machine_err_t;
 
-csm_err_t csm_define_state_transition(csm_state_machine_t *machine, csm_state_t state, csm_transition_t transition);
+typedef void (*csm_machine_on_state_changed)(csm_state_t prev_state, csm_state_t new_state,
+                                             csm_transition_t transition);
 
-csm_err_t csm_dealloc_machine(csm_state_machine_t *machine);
+typedef void (*csm_machine_on_machine_status_changed)(csm_machine_status prev_status, csm_machine_status new_status);
 
-csm_err_t csm_start(csm_state_machine_t *machine);
+typedef struct {
+  // machine status
+  csm_machine_status internal_machine_status;
 
-csm_err_t csm_transit(csm_state_machine_t *machine, csm_transition_t transition);
+  // initial state
+  csm_state_t init_state;
 
-csm_err_t csm_stop(csm_state_machine_t *machine);
+  // current state
+  csm_state_t current_state;
 
-csm_err_t csm_reset(csm_state_machine_t *machine);
+  // state transition linked list
+  csm_linked_list_t state_transition_linked_list[CSM_STATE_COUNT];
+
+  // machine state change callback
+  csm_machine_on_state_changed on_state_changed;
+
+  // machine internal status change callback
+  csm_machine_on_machine_status_changed on_machine_status_changed;
+} csm_state_machine_t;
+
+csm_machine_err_t csm_machine_initialize(csm_state_machine_t *machine, csm_state_t init_state);
+
+csm_machine_err_t csm_machine_define_state_transition(csm_state_machine_t *machine, csm_state_t state,
+                                                      csm_transition_t transition);
+
+csm_machine_err_t csm_machine_dealloc(csm_state_machine_t *machine);
+
+csm_machine_err_t csm_machine_start(csm_state_machine_t *machine);
+
+csm_machine_err_t csm_machine_transit(csm_state_machine_t *machine, csm_transition_t transition);
+
+csm_machine_err_t csm_machine_stop(csm_state_machine_t *machine);
+
+csm_machine_err_t csm_machine_reset(csm_state_machine_t *machine);
 
 #endif /* STATE_MACHINE_H_ */

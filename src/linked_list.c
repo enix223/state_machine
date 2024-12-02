@@ -34,31 +34,32 @@ typedef enum {
 static csm_linked_list_node_t node_pool[NODE_POOL_SIZE];
 static unsigned char node_pool_state[NODE_POOL_SIZE / 8] = {POOL_STATE_FREE};
 
-static csm_err_t malloc_node(csm_linked_list_node_t **node_ptr);
-static csm_err_t free_node(csm_linked_list_node_t *node);
+static csm_linked_list_err_t malloc_node(csm_linked_list_node_t **node_ptr);
+static csm_linked_list_err_t free_node(csm_linked_list_node_t *node);
 static pool_state get_node_state(int i);
 static void set_node_state_occupied(int i);
 static void set_node_state_free(int i);
 
-csm_err_t csm_linked_list_find_node(csm_linked_list_t *list, csm_comparator predicate, void *data) {
+csm_linked_list_err_t csm_linked_list_find_node(csm_linked_list_t *list, void *data, csm_comparator predicate,
+                                                void *predicate_data) {
   csm_linked_list_node_t *p = list->head;
   if (p == CSM_NULL) {
-    return CSM_ERR_FAILED;
+    return CSM_ERR_LINKED_LIST_EMPTY;
   }
   while (p != CSM_NULL) {
-    if (predicate(p->data) == CSM_TRUE) {
+    if (predicate(p->data, predicate_data) == CSM_TRUE) {
       data = p->data;
-      return CSM_ERR_OK;
+      return CSM_ERR_LINKED_LIST_OK;
     }
     p = p->next;
   }
-  return CSM_ERR_FAILED;
+  return CSM_ERR_LINKED_LIST_NOT_FOUND;
 }
 
-csm_err_t csm_linked_list_append_node(csm_linked_list_t *list, void *data) {
+csm_linked_list_err_t csm_linked_list_append_node(csm_linked_list_t *list, void *data) {
   csm_linked_list_node_t *new_node;
-  csm_err_t ret = malloc_node(&new_node);
-  if (ret == CSM_ERR_FAILED) {
+  csm_linked_list_err_t ret = malloc_node(&new_node);
+  if (ret != CSM_ERR_LINKED_LIST_OK) {
     return ret;
   }
 
@@ -70,26 +71,33 @@ csm_err_t csm_linked_list_append_node(csm_linked_list_t *list, void *data) {
   } else {
     list->head->next = new_node;
   }
-  return CSM_ERR_OK;
+  return CSM_ERR_LINKED_LIST_OK;
 }
 
-csm_err_t csm_linked_list_remove_node(csm_linked_list_t *list, csm_comparator predicate) {
+csm_linked_list_err_t csm_linked_list_remove_node(csm_linked_list_t *list, csm_comparator predicate, void *data) {
   csm_linked_list_node_t *ptr = list->head;
   if (ptr == CSM_NULL) {
-    return CSM_ERR_FAILED;
+    return CSM_ERR_LINKED_LIST_EMPTY;
   }
+
   csm_linked_list_node_t *prev = CSM_NULL;
+  csm_linked_list_err_t ret;
   while (ptr != CSM_NULL) {
-    if (predicate(ptr->data) == CSM_TRUE) {
+    if (predicate(ptr->data, data) == CSM_TRUE) {
       prev->next = ptr->next;
+      ret = free_node(ptr);
+      if (ret != CSM_ERR_LINKED_LIST_OK) {
+        return ret;
+      }
+      return CSM_ERR_LINKED_LIST_OK;
     }
     prev = ptr;
     ptr = ptr->next;
   }
-  return CSM_ERR_OK;
+  return CSM_ERR_LINKED_LIST_NOT_FOUND;
 }
 
-static csm_err_t malloc_node(csm_linked_list_node_t **node_ptr) {
+static csm_linked_list_err_t malloc_node(csm_linked_list_node_t **node_ptr) {
   int j, k;
   pool_state state;
   for (int i = 0; i < NODE_POOL_SIZE; i++) {
@@ -97,24 +105,24 @@ static csm_err_t malloc_node(csm_linked_list_node_t **node_ptr) {
     if (state == POOL_STATE_FREE) {
       set_node_state_occupied(i);
       *node_ptr = &node_pool[i];
-      return CSM_ERR_OK;
+      return CSM_ERR_LINKED_LIST_OK;
     }
   }
-  return CSM_ERR_FAILED;
+  return CSM_ERR_LINKED_LIST_NO_SPACE;
 }
 
-csm_err_t free_node(csm_linked_list_node_t *node) {
+csm_linked_list_err_t free_node(csm_linked_list_node_t *node) {
   csm_linked_list_node_t *ptr;
   for (int i = 0; i < NODE_POOL_SIZE; i++) {
     if (&node_pool[i] == node) {
       if (get_node_state(i) == POOL_STATE_OCCUPIED) {
         set_node_state_free(i);
-        return CSM_ERR_OK;
+        return CSM_ERR_LINKED_LIST_OK;
       }
-      return CSM_ERR_FAILED;
+      return CSM_ERR_LINKED_LIST_ILLEGAL_STATE;
     }
   }
-  return CSM_ERR_FAILED;
+  return CSM_ERR_LINKED_LIST_NOT_FOUND;
 }
 
 pool_state get_node_state(int i) {
