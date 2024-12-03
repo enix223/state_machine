@@ -8,6 +8,16 @@ Let's say, we need to define a state machine for a traffic light as below:
 
 ![state_machine_diagram](./media/state_machine_digram.png)
 
+0. Define macros
+
+    ```c
+    // define linked list node pool size
+    #define CONFIG_NODE_POOL_SIZE 128
+
+    // The total count of the states
+    #define CONFIG_STATE_COUNT 10
+    ```
+
 1. Initialize a machine
 
     ```c
