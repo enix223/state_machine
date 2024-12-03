@@ -52,6 +52,9 @@ typedef enum {
 } csm_machine_err_t;
 
 typedef struct {
+  // from which state
+  csm_state_t from_state;
+
   // transition
   csm_transition_t transition;
 
@@ -112,12 +115,11 @@ csm_machine_err_t csm_machine_register_on_machine_status_changed(
 /**
  * @brief Define state change transition
  * @param machine pointer to the state machine
- * @param from_state state
  * @param transition_node transition action
  * @return CSM_MACHINE_ERR_OK: operation success
  *         CSM_MACHINE_ERR_ILLEGAL_STATUS: if machine not in 'new' status
  */
-csm_machine_err_t csm_machine_define_state_transition(csm_state_machine_t *machine, csm_state_t from_state,
+csm_machine_err_t csm_machine_define_state_transition(csm_state_machine_t *machine,
                                                       csm_state_transition_node_t *transition_node);
 
 /**

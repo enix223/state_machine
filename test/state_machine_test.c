@@ -82,31 +82,35 @@ int test_state_machine_should_transit_ok() {
   ASSERT_EQ(ret, CSM_MACHINE_ERR_OK);
 
   csm_state_transition_node_t trans_node1 = {
+      .from_state = TEST_STATE_0,
       .transition = TEST_TRANSITION_A,
       .to_state = TEST_STATE_1,
   };
-  ret = csm_machine_define_state_transition(&machine, TEST_STATE_0, &trans_node1);
+  ret = csm_machine_define_state_transition(&machine, &trans_node1);
   ASSERT_EQ(ret, CSM_MACHINE_ERR_OK);
 
   csm_state_transition_node_t trans_node2 = {
+      .from_state = TEST_STATE_1,
       .transition = TEST_TRANSITION_B,
       .to_state = TEST_STATE_2,
   };
-  ret = csm_machine_define_state_transition(&machine, TEST_STATE_1, &trans_node2);
+  ret = csm_machine_define_state_transition(&machine, &trans_node2);
   ASSERT_EQ(ret, CSM_MACHINE_ERR_OK);
 
   csm_state_transition_node_t trans_node3 = {
+      .from_state = TEST_STATE_2,
       .transition = TEST_TRANSITION_C,
       .to_state = TEST_STATE_3,
   };
-  ret = csm_machine_define_state_transition(&machine, TEST_STATE_2, &trans_node3);
+  ret = csm_machine_define_state_transition(&machine, &trans_node3);
   ASSERT_EQ(ret, CSM_MACHINE_ERR_OK);
 
   csm_state_transition_node_t trans_node4 = {
+      .from_state = TEST_STATE_2,
       .transition = TEST_TRANSITION_A,
       .to_state = TEST_STATE_0,
   };
-  ret = csm_machine_define_state_transition(&machine, TEST_STATE_2, &trans_node4);
+  ret = csm_machine_define_state_transition(&machine, &trans_node4);
   ASSERT_EQ(ret, CSM_MACHINE_ERR_OK);
 
   ret = csm_machine_start(&machine);

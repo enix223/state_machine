@@ -51,13 +51,13 @@ csm_machine_err_t csm_machine_register_on_machine_status_changed(
   return CSM_MACHINE_ERR_OK;
 }
 
-csm_machine_err_t csm_machine_define_state_transition(csm_state_machine_t *machine, csm_state_t from_state,
+csm_machine_err_t csm_machine_define_state_transition(csm_state_machine_t *machine,
                                                       csm_state_transition_node_t *trans_node) {
   if (machine->internal_machine_status != CSM_MACHINE_STATUS_NEW) {
     // can only define transition when machine in new status
     return CSM_MACHINE_ERR_ILLEGAL_STATUS;
   }
-  csm_linked_list_t *linked_list = &machine->state_transition_linked_list[from_state];
+  csm_linked_list_t *linked_list = &machine->state_transition_linked_list[trans_node->from_state];
   csm_linked_list_append_node(linked_list, trans_node);
   return CSM_MACHINE_ERR_OK;
 }
