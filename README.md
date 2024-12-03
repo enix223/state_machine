@@ -4,6 +4,10 @@ State machine implement in pure C
 
 ## Usage
 
+Let's say, we need to define a state machine for a traffic light as below:
+
+![state_machine_diagram](./media/state_machine_digram.png)
+
 1. Initialize a machine
 
     ```c
@@ -91,6 +95,12 @@ State machine implement in pure C
 
     ```c
     csm_machine_stop(&machine);
+    ```
+
+6. Reset machine
+
+    ```c
+    csm_machine_reset(&machine);
     ```
 
 For more example, please refer to `test/state_machine_test.c`
