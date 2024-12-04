@@ -62,11 +62,15 @@ typedef struct {
   csm_state_t to_state;
 } csm_state_transition_node_t;
 
-typedef void (*csm_machine_on_state_changed)(csm_state_t prev_state, csm_state_t new_state);
+typedef struct csm_state_machine_t csm_state_machine_t;
 
-typedef void (*csm_machine_on_machine_status_changed)(csm_machine_status prev_status, csm_machine_status new_status);
+typedef void (*csm_machine_on_state_changed)(csm_state_machine_t *machine, csm_state_t prev_state,
+                                             csm_state_t new_state);
 
-typedef struct {
+typedef void (*csm_machine_on_machine_status_changed)(csm_state_machine_t *machine, csm_machine_status prev_status,
+                                                      csm_machine_status new_status);
+
+typedef struct csm_state_machine_t {
   // machine status
   csm_machine_status internal_machine_status;
 

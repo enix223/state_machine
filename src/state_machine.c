@@ -76,7 +76,7 @@ csm_machine_err_t csm_machine_start(csm_state_machine_t *machine) {
   }
   machine->internal_machine_status = CSM_MACHINE_STATUS_STARTED;
   if (machine->on_machine_status_changed != CSM_NULL) {
-    machine->on_machine_status_changed(CSM_MACHINE_STATUS_NEW, CSM_MACHINE_STATUS_STARTED);
+    machine->on_machine_status_changed(machine, CSM_MACHINE_STATUS_NEW, CSM_MACHINE_STATUS_STARTED);
   }
   return CSM_MACHINE_ERR_OK;
 }
@@ -99,7 +99,7 @@ csm_machine_err_t csm_machine_transit(csm_state_machine_t *machine, csm_transiti
 
   if (machine->on_state_changed != CSM_NULL) {
     // trigger state change callback
-    machine->on_state_changed(machine->current_state, found_node->to_state);
+    machine->on_state_changed(machine, machine->current_state, found_node->to_state);
   }
 
   machine->current_state = found_node->to_state;
@@ -111,7 +111,7 @@ csm_machine_err_t csm_machine_stop(csm_state_machine_t *machine) {
     return CSM_MACHINE_ERR_ILLEGAL_STATUS;
   }
   if (machine->on_machine_status_changed != CSM_NULL) {
-    machine->on_machine_status_changed(CSM_MACHINE_STATUS_STARTED, CSM_MACHINE_STATUS_STOPPED);
+    machine->on_machine_status_changed(machine, CSM_MACHINE_STATUS_STARTED, CSM_MACHINE_STATUS_STOPPED);
   }
   machine->internal_machine_status = CSM_MACHINE_STATUS_STOPPED;
   return CSM_MACHINE_ERR_OK;
@@ -123,10 +123,10 @@ csm_machine_err_t csm_machine_reset(csm_state_machine_t *machine) {
     return CSM_MACHINE_ERR_ILLEGAL_STATUS;
   }
   if (machine->on_machine_status_changed != CSM_NULL) {
-    machine->on_machine_status_changed(machine->internal_machine_status, CSM_MACHINE_STATUS_STARTED);
+    machine->on_machine_status_changed(machine, machine->internal_machine_status, CSM_MACHINE_STATUS_STARTED);
   }
   if (machine->on_state_changed != CSM_NULL) {
-    machine->on_state_changed(machine->current_state, machine->init_state);
+    machine->on_state_changed(machine, machine->current_state, machine->init_state);
   }
   machine->current_state = machine->init_state;
   machine->internal_machine_status = CSM_MACHINE_STATUS_STARTED;
