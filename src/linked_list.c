@@ -121,7 +121,6 @@ static csm_linked_list_err_t malloc_node(csm_linked_list_node_t **node_ptr) {
 }
 
 csm_linked_list_err_t free_node(csm_linked_list_node_t *node) {
-  csm_linked_list_node_t *ptr;
   for (int i = 0; i < NODE_POOL_SIZE; i++) {
     if (&node_pool[i] == node) {
       if (get_node_state(i) == POOL_STATE_OCCUPIED) {
